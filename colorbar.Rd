@@ -15,7 +15,7 @@ colorbar(x, y = NULL, col = palette(), labels = TRUE,
          tick = !any(is.na(c(minlabel, maxlabel))) ||
          !is.logical(labels),
          horiz = "auto", minlabel = NA, maxlabel = NA,
-         nticks = 2, tickat = NULL, margin = rep(0.03, 4),
+         nticks = 2, tickat = NULL, margin = rep(-0.03, 4),
          longside = -0.6, shortside = -0.05,
          axisloc = c("in", "out"), reverse = "auto",
          xjust = 0.5, yjust = 0.5, labeljust = TRUE,
@@ -79,17 +79,17 @@ colorbar(x, y = NULL, col = palette(), labels = TRUE,
   }
   \item{margin}{
     A \code{numeric} vector of length 4 giving the margins on the
-    bottom, left, top, right sides (in this order).  The numbers are
-    proportions of the size of the plot.  Used when \code{\var{x}} is a
-    \code{character} string.  If the colorbar is placed in a corner, two
-    of the margin values are used.  When \code{\var{x}} is
-    \code{"standalone"}, all four values are used.  Otherwise, only one
-    margin is relevant.
+    bottom, left, top, right sides (in this order).  Given either as a
+    proportion of the relevant dimension of the plotting region
+    (negative value, absolute value taken) or as inches (positive
+    value).  If the colorbar is placed in a corner, two of the margin
+    values are used.  When \code{\var{x}} is \code{"standalone"}, all
+    four values are used.  Otherwise, only one margin is relevant.
   }
   \item{longside}{
     The size of the \dQuote{long} side of the colorbar.  Given either as
     a proportion of the relevant dimension of the plotting region
-    (absolute value of a negative value) or as inches (positive
+    (negative value, absolute value taken) or as inches (positive
     value).  Long side means the side along which the colors change.
     Ignored if two (\code{\var{x}}, \code{\var{y}}) coordinates are
     supplied.

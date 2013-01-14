@@ -22,7 +22,7 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                      tick = !any(is.na(c(minlabel, maxlabel))) ||
                      !is.logical(labels),
                      horiz = "auto", minlabel = NA, maxlabel = NA,
-                     nticks = 2, tickat = NULL, margin = rep(0.03, 4),
+                     nticks = 2, tickat = NULL, margin = rep(-0.03, 4),
                      longside = -0.6, shortside = -0.05,
                      axisloc = c("in", "out"), reverse = "auto",
                      xjust = 0.5, yjust = 0.5, labeljust = TRUE,
@@ -84,7 +84,23 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
     }
     if (standalone) {
         par(mai = rep(0, 4))
-        par(omd = c(margin[2], 1 - margin[4], margin[1], 1 - margin[3]))
+        margin2 <- margin
+        ds <- dev.size(units = "in")
+        for (i in c(1, 3)) {
+            if (margin2[i] < 0) {
+                margin2[i] <- -margin2[i]
+            } else {
+                margin2[i] <- margin2[i] / ds[2]
+            }
+        }
+        for (i in c(2, 4)) {
+            if (margin2[i] < 0) {
+                margin2[i] <- -margin2[i]
+            } else {
+                margin2[i] <- margin2[i] / ds[1]
+            }
+        }
+        par(omd = c(margin2[2], 1 - margin2[4], margin2[1], 1 - margin2[3]))
         plot(1:2, ann = FALSE, xaxt = "n", yaxt = "n", type = "n", bty = "n")
     }
     if (autoxy) {
@@ -325,20 +341,35 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
     ## (Log) user coordinates for colorbar
     axisside <- NULL
     if (autoxy) {
+        margin2 <- margin
+        for (i in c(1, 3)) {
+            if (margin2[i] < 0) {
+                margin2[i] <- -margin2[i]
+            } else {
+                margin2[i] <- margin2[i] / pin[2]
+            }
+        }
+        for (i in c(2, 4)) {
+            if (margin2[i] < 0) {
+                margin2[i] <- -margin2[i]
+            } else {
+                margin2[i] <- margin2[i] / pin[1]
+            }
+        }
         if (horiz2) {
             if (grepl("right", xauto, fixed = TRUE)) {
-                seqstart <- usr[2] - margin[4] * usrwidth - usrlong
+                seqstart <- usr[2] - margin2[4] * usrwidth - usrlong
             } else if (grepl("left", xauto, fixed = TRUE)) {
-                seqstart <- usr[1] + margin[2] * usrwidth
+                seqstart <- usr[1] + margin2[2] * usrwidth
             } else {
                 seqstart <- usr[1] + 0.5 * (usrwidth - usrlong)
             }
             if (grepl("bottom", xauto, fixed = TRUE)) {
-                y0 <- usr[3] + margin[1] * usrheight +
+                y0 <- usr[3] + margin2[1] * usrheight +
                     axissize * (axisloc2 == "out")
                 y1 <- y0 + usrshort
             } else if (grepl("top", xauto, fixed = TRUE)) {
-                y1 <- usr[4] - margin[3] * usrheight -
+                y1 <- usr[4] - margin2[3] * usrheight -
                     axissize * (axisloc2 == "out")
                 y0 <- y1 - usrshort
                 ## Top: out means top side
@@ -364,11 +395,11 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
             }
         } else { # vertical colorbar
             if (grepl("right", xauto, fixed = TRUE)) {
-                x1 <- usr[2] - margin[4] * usrwidth -
+                x1 <- usr[2] - margin2[4] * usrwidth -
                     axissize * (axisloc2 == "out")
                 x0 <- x1 - usrshort
             } else if (grepl("left", xauto, fixed = TRUE)) {
-                x0 <- usr[1] + margin[2] * usrwidth +
+                x0 <- usr[1] + margin2[2] * usrwidth +
                     axissize * (axisloc2 == "out")
                 x1 <- x0 + usrshort
                 ## Left: out means left side
@@ -393,9 +424,9 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                 }
             }
             if (grepl("bottom", xauto, fixed = TRUE)) {
-                seqstart <- usr[3] + margin[1] * usrheight
+                seqstart <- usr[3] + margin2[1] * usrheight
             } else if (grepl("top", xauto, fixed = TRUE)) {
-                seqstart <- usr[4] - margin[3] * usrheight - usrlong
+                seqstart <- usr[4] - margin2[3] * usrheight - usrlong
             } else {
                 seqstart <- usr[3] + 0.5 * (usrheight - usrlong)
             }
