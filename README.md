@@ -16,6 +16,8 @@ colorbar
 <dd>Document for colorbar.R</dd>
 <dt>colorbar.pdf</dt>
 <dd>colorbar.Rd compiled to PDF</dd>
+<dt>colorbar.txt</dt>
+<dd>colorbar.Rd compiled to UTF-8 text</dd>
 </dl>
 
 Copyright and license

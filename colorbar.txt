@@ -1,0 +1,162 @@
+_A_d_d _C_o_l_o_r_b_a_r_s _t_o _P_l_o_t_s
+
+_D_e_s_c_r_i_p_t_i_o_n:
+
+     This function adds a colorbar to a plot.
+
+_U_s_a_g_e:
+
+     colorbar(x, y = NULL, col = palette(), labels = TRUE,
+              tick = !any(is.na(c(minlabel, maxlabel))) ||
+              !is.logical(labels),
+              horiz = "auto", minlabel = NA, maxlabel = NA,
+              nticks = 2, tickat = NULL, margin = rep(-0.03, 4),
+              longside = -0.6, shortside = -0.05,
+              axisloc = c("in", "out"), reverse = "auto",
+              xjust = 0.5, yjust = 0.5, labeljust = TRUE,
+              noaxissize = FALSE, totalsize = FALSE, ...)
+     
+_A_r_g_u_m_e_n_t_s:
+
+       x: The x coordinate(s) or other location specifier used to
+          position the colorbar.  See ‘Details’.
+
+       y: The y coordinate(s) used to position the colorbar.
+
+     col: The colors used in the colorbar
+
+  labels: A vector of labels to draw.  See ‘tickat’ for help on setting
+          the location of the labels (each marked with a tick).  Can
+          also be ‘FALSE’ for no labels or ‘TRUE’ for automatic labels
+          and locations when ‘minlabel’ and ‘maxlabel’ are specified.
+          Mathematical annotation is supported, see ‘plotmath’.
+
+    tick: A ‘logical’ flag.  If ‘TRUE’, draw ticks (and labels).  If
+          ‘FALSE’, just the colorbar is drawn with no extras.
+
+   horiz: A ‘logical’ flag or ‘"auto"’ indicating if the colorbar will
+          be drawn horizontally (‘TRUE’) or vertically (‘FALSE’).  If
+          ‘"auto"’, the orientation will be determined automatically in
+          some situations, i.e. when ‘x’ is ‘"top"’ or ‘"bottom"’
+          (horizontal orientation is assumed) or when two (‘x’, ‘y’)
+          points are given (the direction with the longer distance
+          between the points determines the orientation).
+
+minlabel: A ‘numeric’ value giving the label corresponding to the first
+          color.  If ‘NA’, manual ‘labels’ are used if available.
+
+maxlabel: A ‘numeric’ value giving the label corresponding to the last
+          color.
+
+  nticks: The desired number of ticks and labels.  Used when a linear
+          number range is indicated by giving values for ‘minlabel’ and
+          ‘maxlabel’ or when only ticks and no labels are used.  In the
+          first case, the number will not necessarily match the actual
+          number of ticks and labels that are drawn.
+
+  tickat: A vector giving the tick locations on the annotation axis.
+          Values between ‘i - 0.5’ and ‘i + 0.5’ cover the i:th color.
+          When ‘minlabel’ and ‘maxlabel’ are specified, automatic tick
+          locations are used instead, guided by ‘nticks’.
+
+  margin: A ‘numeric’ vector of length 4 giving the margins on the
+          bottom, left, top, right sides (in this order).  Given either
+          as a proportion of the relevant dimension of the plotting
+          region (negative value, absolute value taken) or as inches
+          (positive value).  If the colorbar is placed in a corner, two
+          of the margin values are used.  When ‘x’ is ‘"standalone"’,
+          all four values are used.  Otherwise, only one margin is
+          relevant.
+
+longside: The size of the “long” side of the colorbar.  Given either as
+          a proportion of the relevant dimension of the plotting region
+          (negative value, absolute value taken) or as inches (positive
+          value).  Long side means the side along which the colors
+          change.  Ignored if two (‘x’, ‘y’) coordinates are supplied.
+
+shortside: The size of the “short” side of the colorbar.  See
+          ‘longside’.  Ignored if two (‘x’, ‘y’) coordinates are
+          supplied.  See argument ‘totalsize’.
+
+ axisloc: Location of annotation axis relative to colorbar.  Either
+          ‘"in"’ (closer to the center of the plotting region) or
+          ‘"out"’ (closer to the border).  When a horizontal / vertical
+          colorbar is drawn in the middle / center, ‘"out"’ means the
+          bottom / right side of the colorbar.
+
+ reverse: A ‘logical’ flag.  If ‘TRUE’, the drawing order of the colors
+          is reversed (right to left or up to down).
+
+   xjust: A ‘numeric’ value indicating the horizontal justification of
+          the colorbar when its position is given with a single (‘x’,
+          ‘y’) coordinate. A value of 0 means left justified, 0.5 is
+          centered and 1 right justified.
+
+   yjust: A ‘numeric’ value indicating the vertical justification.  0
+          means bottom justified, 0.5 is centered and 1 top justified.
+
+labeljust: A ‘logical’ flag.  If ‘TRUE’, some adjustments are made so
+          that the labels are justified next to the colorbar.
+
+noaxissize: A ‘logical’ flag.  If ‘TRUE’, the size of the axis is not
+          taken into account when positioning the colorbar.  When two
+          (‘x’, ‘y’) coordinates are given, ‘TRUE’ means that the
+          colorbar itself fills the whole space, and ‘FALSE’ means that
+          the annotation axis and its labels (if drawn) consume some of
+          the space.
+
+totalsize: A ‘logical’ flag.  If ‘TRUE’, ‘shortside’ must be large
+          enough to accommodate the possible annotation axis and
+          labels.  If ‘FALSE’ (the default), the axis consumes space
+          additional to ‘shortside’.
+
+     ...: Arguments passed to ‘axis’
+
+_D_e_t_a_i_l_s:
+
+     The values of ‘x’ and ‘y’ are interpreted using ‘xy.coords’.  This
+     allows giving one coordinate point, two points (the corners of the
+     colorbar) and a number of other possibilities.  For example, ‘x’
+     can be a call to ‘locator’.  Alternatively, ‘x’ can be one of the
+     preset locations ‘"bottomright"’, ‘"bottom"’, ‘"bottomleft"’,
+     ‘"left"’, ‘"topleft"’, ‘"top"’, ‘"topright"’, ‘"right"’,
+     ‘"center"’. When ‘x’ is given the special value ‘"standalone"’, a
+     standalone colorbar occupies the whole device except ‘margin’.
+
+     Additional arguments can be given to ‘axis’. For example, ‘las’
+     controls the orientation of axis labels and ‘cex.axis’ adjusts
+     text size.
+
+_V_a_l_u_e:
+
+     An ‘invisible’ named ‘numeric’ vector containing the approximate
+     coordinates defining the bounding box of the colorbar and its
+     axis, with components (in this order)
+
+   xleft: x coordinate, left side
+
+ ybottom: y coordinate, bottom side
+
+  xright: x coordinate, right side
+
+    ytop: y coordinate, top side
+
+_A_u_t_h_o_r(_s):
+
+     Mikko Korpela
+
+_S_e_e _A_l_s_o:
+
+     ‘par’ for how to specify colors
+
+_E_x_a_m_p_l_e_s:
+
+     pal <- cm.colors(128)
+     agricol <- round(swiss$Agriculture / 100 * 127 + 1)
+     plot(swiss$Education, swiss$Fertility, bg = pal[agricol], pch=21, cex=2,
+          xlab = "Education", ylab = "Fertility")
+     coord <- colorbar("right", col = pal, minlabel = 0, maxlabel = 100,
+                       nticks=6, las=1, axisloc="out", cex.axis=0.75, xjust=0)
+     text(coord[1] - 2, mean(coord[c(2, 4)]), "Agriculture",
+          srt = 90, adj=c(0.5,0))
+     
