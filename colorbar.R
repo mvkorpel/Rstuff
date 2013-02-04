@@ -269,6 +269,7 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
             ## TRUE, the input 'd' is assumed to be proportional to plot
             ## dimensions, otherwise an actual distance.
             convdist <- function(d, dirin, dirout, propin=FALSE) {
+                ## 1. distance proportional to input axis
                 if (propin) {
                     dout <- d
                 } else if (dirin == "h") {
@@ -276,18 +277,17 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                 } else {
                     dout <- d / usrheightlin
                 }
+                ## 2. distance proportional to output axis
+                if (dirin == "h" && dirout == "v") {
+                    dout <- dout * pin[1] / pin[2]
+                } else if (dirin == "v" && dirout == "h") {
+                    dout <- dout / pin[1] * pin[2]
+                }
+                ## 3. native distance along output axis
                 if (dirout == "h") {
-                    if (xlog) {
-                        dout * usrwidth
-                    } else {
-                        dout * usrwidthlin
-                    }
+                    dout * usrwidth
                 } else {
-                    if (ylog) {
-                        dout * usrheight
-                    } else {
-                        dout * usrheightlin
-                    }
+                    dout * usrheight
                 }
             }
 
@@ -296,28 +296,33 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
             } else {
                 cxy <- convdist(cxy, "v", "h")
             }
-            if ((horiz2 && las %in% c(0, 1)) ||
-                (!horiz2 && las %in% c(0, 3))) {
-                labelsizes <- vapply(labels2, strheight, 1, units = "inches",
-                                     cex = cex * cex.axis, USE.NAMES=FALSE)
-                maxsize <- max(labelsizes) / pin[2]
-                if (horiz2) {
-                    maxsize <- convdist(maxsize, "v", "v", TRUE)
-                } else {
-                    maxsize <- convdist(maxsize, "v", "h", TRUE)
-                }
-            } else {
-                labelsizes <- vapply(labels2, strwidth, 1, units = "inches",
-                                     cex = cex * cex.axis, USE.NAMES=FALSE)
-                maxsize <- max(labelsizes) / pin[1]
-                if (horiz2) {
-                    maxsize <- convdist(maxsize, "h", "v", TRUE)
-                } else {
-                    maxsize <- convdist(maxsize, "h", "h", TRUE)
-                }
-            }
             if (!identical(labels2, FALSE)) {
-                axissize <- (mgp[2] * thepar$mex + 0.5) * cxy + maxsize
+                if ((horiz2 && las %in% c(0, 1)) ||
+                    (!horiz2 && las %in% c(0, 3))) {
+                    labelsizes <- vapply(labels2, strheight, 1,
+                                         units = "inches",
+                                         cex = cex * cex.axis,
+                                         USE.NAMES=FALSE)
+                    maxsize <- max(labelsizes) / pin[2]
+                    if (horiz2) {
+                        maxsize <- convdist(maxsize, "v", "v", TRUE)
+                    } else {
+                        maxsize <- convdist(maxsize, "v", "h", TRUE)
+                    }
+                    axissize <- (mgp[2] * thepar$mex + 0.5) * cxy + maxsize
+                } else {
+                    labelsizes <- vapply(labels2, strwidth, 1,
+                                         units = "inches",
+                                         cex = cex * cex.axis,
+                                         USE.NAMES=FALSE)
+                    maxsize <- max(labelsizes) / pin[1]
+                    if (horiz2) {
+                        maxsize <- convdist(maxsize, "h", "v", TRUE)
+                    } else {
+                        maxsize <- convdist(maxsize, "h", "h", TRUE)
+                    }
+                    axissize <- (mgp[2] * thepar$mex) * cxy + maxsize
+                }
             } else {
                 axissize <- max(0, -tcl) * cxy
             }
