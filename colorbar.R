@@ -206,7 +206,29 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
 
     ## Tick labels and their locations (values from 0.5 to ncols + 0.5)
     if (tick) {
-        cxy <- thepar$cxy[2]
+        ## According to ?par,
+        ##(1) 'par("cxy") is par("cin")/par("pin") scaled to user coordinates.'
+        ## That would make:
+        ##(2) cxy <- thepar$cin[2] / pin[2] * usrheightlin
+        ## Also from ?par,
+        ##(3) par("csi") is 'The same as par("cin")[2]'.
+        ## So, the equivalent of (1) is:
+        cxy <- thepar$csi / pin[2] * usrheightlin
+        ## ... which seems to work better than using par("cxy") or
+        ## (1), because apparently the equivalence in (3) doesn't
+        ## always hold. Example (R trunk r61876):
+        ## > x11()
+        ## > plot(1:5)
+        ## > par(cex=2)
+        ## > par1 <- par()
+        ## > par1$csi == par1$cin[2]
+        ## [1] TRUE
+        ## > x11()
+        ## > par(cex=2)
+        ## > plot(1:5)
+        ## > par2 <- par()
+        ## > par2$csi == par2$cin[2]
+        ## [1] FALSE
         axisArg <- list(...)
         mgp <- axisArg[["mgp"]]
         if (is.null(mgp)) {
@@ -216,13 +238,9 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
         if (is.null(tcl)) {
             tcl <- thepar$tcl
         }
-        cex <- axisArg[["cex"]]
-        if (is.null(cex)) {
-            cex <- thepar$cex
-        }
         cex.axis <- axisArg[["cex.axis"]]
         if (is.null(cex.axis)) {
-            cex.axis <- thepar$cex.axis
+            cex.axis <- 1
         }
         las <- axisArg[["las"]]
         if (is.null(las)) {
@@ -301,7 +319,7 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                     (!horiz2 && las %in% c(0, 3))) {
                     labelsizes <- vapply(labels2, strheight, 1,
                                          units = "inches",
-                                         cex = cex * cex.axis,
+                                         cex = cex.axis,
                                          USE.NAMES=FALSE)
                     maxsize <- max(labelsizes) / pin[2]
                     if (horiz2) {
@@ -309,11 +327,11 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                     } else {
                         maxsize <- convdist(maxsize, "v", "h", TRUE)
                     }
-                    axissize <- (mgp[2] * thepar$mex + 0.5) * cxy + maxsize
+                    axissize <- (mgp[2] * thepar$mex + 1) * cxy + maxsize
                 } else {
                     labelsizes <- vapply(labels2, strwidth, 1,
                                          units = "inches",
-                                         cex = cex * cex.axis,
+                                         cex = cex.axis,
                                          USE.NAMES=FALSE)
                     maxsize <- max(labelsizes) / pin[1]
                     if (horiz2) {
@@ -321,7 +339,7 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                     } else {
                         maxsize <- convdist(maxsize, "h", "h", TRUE)
                     }
-                    axissize <- (mgp[2] * thepar$mex) * cxy + maxsize
+                    axissize <- mgp[2] * thepar$mex * cxy + maxsize
                 }
             } else {
                 axissize <- max(0, -tcl) * cxy
