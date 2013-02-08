@@ -322,12 +322,18 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                                          cex = cex.axis,
                                          USE.NAMES=FALSE)
                     maxsize <- max(labelsizes) / pin[2]
+                    Msize <- strheight("M", units = "inches",
+                                       cex = cex.axis) / pin[2]
                     if (horiz2) {
                         maxsize <- convdist(maxsize, "v", "v", TRUE)
+                        Msize <- convdist(Msize, "v", "v", TRUE)
                     } else {
                         maxsize <- convdist(maxsize, "v", "h", TRUE)
+                        Msize <- convdist(Msize, "v", "h", TRUE)
                     }
-                    axissize <- (mgp[2] * thepar$mex + 1) * cxy + maxsize
+                    ## trial and error, depends on the font
+                    axissize <- (mgp[2] * thepar$mex + 0.25) * cxy + maxsize
+                    axisopt <- 0.3 * Msize + 0.25 * cxy
                 } else {
                     labelsizes <- vapply(labels2, strwidth, 1,
                                          units = "inches",
@@ -351,14 +357,11 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
         tickat2 <- NULL
         axissize <- 0
     }
-    ## Record true axissize for computing xleft, ybottom, xright, ytop
-    trueaxissize <- axissize
-    if (noaxissize) {
-        axissize <- 0
-    }
     ## Ensure that axis and labels fit in the standalone picture
-    if (standalone || ((autoxy || nx != 2) && totalsize)) {
-        usrshort <- max(0, usrshort - axissize)
+    if (!noaxissize && (standalone || ((autoxy || nx != 2) && totalsize))) {
+        f_usrshort <- function() max(0, usrshort - axissize)
+    } else {
+        f_usrshort <- function() usrshort
     }
 
     ## (Log) user coordinates for colorbar
@@ -388,63 +391,101 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                 seqstart <- usr[1] + 0.5 * (usrwidth - usrlong)
             }
             if (grepl("bottom", xauto, fixed = TRUE)) {
-                y0 <- usr[3] + margin2[1] * usrheight +
-                    axissize * (axisloc2 == "out")
-                y1 <- y0 + usrshort
+                ## Bottom: out means bottom side
+                if (axisloc2 == "out") {
+                    axisside <- 1
+                    if (!identical(labels2, FALSE) && las %in% c(0, 1)) {
+                        axissize <- axissize + axisopt
+                    }
+                } else {
+                    axisside <- 3
+                }
+                y0 <- usr[3] + margin2[1] * usrheight
+                if (!noaxissize && axisloc2 == "out") {
+                    y0 <- y0 + axissize
+                }
+                y1 <- y0 + f_usrshort()
             } else if (grepl("top", xauto, fixed = TRUE)) {
-                y1 <- usr[4] - margin2[3] * usrheight -
-                    axissize * (axisloc2 == "out")
-                y0 <- y1 - usrshort
                 ## Top: out means top side
                 if (axisloc2 == "out") {
                     axisside <- 3
                 } else {
                     axisside <- 1
+                    if (!identical(labels2, FALSE) && las %in% c(0, 1)) {
+                        axissize <- axissize + axisopt
+                    }
                 }
+                y1 <- usr[4] - margin2[3] * usrheight
+                if (!noaxissize && axisloc2 == "out") {
+                    y1 <- y1 - axissize
+                }
+                y0 <- y1 - f_usrshort()
             } else {
-                y0 <- usr[3] + 0.5 * (usrheight - usrshort - axissize)
-                if (axisloc2 == "out") {
-                    y0 <- y0 + axissize
-                }
-                y1 <- y0 + usrshort
-            }
-            if (is.null(axisside)) {
-                ## Bottom or middle (default): out means bottom side
+                ## Middle (default): out means bottom side
                 if (axisloc2 == "out") {
                     axisside <- 1
+                    if (!identical(labels2, FALSE) && las %in% c(0, 1)) {
+                        axissize <- axissize + axisopt
+                    }
                 } else {
                     axisside <- 3
                 }
+                tmp <- f_usrshort()
+                y0 <- usr[3] + 0.5 * (usrheight - tmp -
+                                      (!noaxissize) * axissize)
+                if (!noaxissize && axisloc2 == "out") {
+                    y0 <- y0 + axissize
+                }
+                y1 <- y0 + tmp
             }
         } else { # vertical colorbar
             if (grepl("right", xauto, fixed = TRUE)) {
-                x1 <- usr[2] - margin2[4] * usrwidth -
-                    axissize * (axisloc2 == "out")
-                x0 <- x1 - usrshort
+                ## Right: out means right side
+                if (axisloc2 == "out") {
+                    axisside <- 4
+                    if (!identical(labels2, FALSE) && las %in% c(0, 3)) {
+                        axissize <- axissize + axisopt
+                    }
+                } else {
+                    axisside <- 2
+                }
+                x1 <- usr[2] - margin2[4] * usrwidth
+                if (!noaxissize && axisloc2 == "out") {
+                    x1 <- x1 - axissize
+                }
+                x0 <- x1 - f_usrshort()
             } else if (grepl("left", xauto, fixed = TRUE)) {
-                x0 <- usr[1] + margin2[2] * usrwidth +
-                    axissize * (axisloc2 == "out")
-                x1 <- x0 + usrshort
                 ## Left: out means left side
                 if (axisloc2 == "out") {
                     axisside <- 2
                 } else {
                     axisside <- 4
+                    if (!identical(labels2, FALSE) && las %in% c(0, 3)) {
+                        axissize <- axissize + axisopt
+                    }
                 }
-            } else {
-                x0 <- usr[1] + 0.5 * (usrwidth - usrshort - axissize)
-                if (axisloc2 == "in") {
+                x0 <- usr[1] + margin2[2] * usrwidth
+                if (!noaxissize && axisloc2 == "out") {
                     x0 <- x0 + axissize
                 }
-                x1 <- x0 + usrshort
-            }
-            if (is.null(axisside)) {
-                ## Right or center (default): out means right side
+                x1 <- x0 + f_usrshort()
+            } else {
+                ## Center (default): out means right side
                 if (axisloc2 == "out") {
                     axisside <- 4
+                    if (!identical(labels2, FALSE) && las %in% c(0, 3)) {
+                        axissize <- axissize + axisopt
+                    }
                 } else {
                     axisside <- 2
                 }
+                tmp <- f_usrshort()
+                x0 <- usr[1] + 0.5 * (usrwidth - tmp -
+                                      (!noaxissize) * axissize)
+                if (!noaxissize && axisloc2 == "in") {
+                    x0 <- x0 + axissize
+                }
+                x1 <- x0 + tmp
             }
             if (grepl("bottom", xauto, fixed = TRUE)) {
                 seqstart <- usr[3] + margin2[1] * usrheight
@@ -461,8 +502,9 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
             y1 <- max(yusr)
         } else {
             seqstart <- xusr - xjust * usrlong
-            y0 <- yusr - yjust * usrshort
-            y1 <- y0 + usrshort
+            tmp <- f_usrshort()
+            y0 <- yusr - yjust * tmp
+            y1 <- y0 + tmp
         }
         ymid <- (y0 + y1) / 2
         usrmid <- (usr[3] + usr[4]) / 2
@@ -470,16 +512,19 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
         if ((axisloc2 == "out" && ymid <= usrmid) ||
             (axisloc2 == "in" && ymid > usrmid)) {
             axisside <- 1
-            adjustment <- axissize - yjust * axissize
+            if (!identical(labels2, FALSE) && las %in% c(0, 1)) {
+                axissize <- axissize + axisopt
+            }
+            adjustment <- (!noaxissize) * (axissize - yjust * axissize)
         } else {
             axisside <- 3
-            adjustment <- -yjust * axissize
+            adjustment <- (!noaxissize) * (-yjust * axissize)
         }
         if (!autoxy && nx == 2) {
             if (axisside == 1) {
-                y0 <- min(y0 + axissize, y1)
+                y0 <- min(y0 + (!noaxissize) * axissize, y1)
             } else {
-                y1 <- max(y1 - axissize, y0)
+                y1 <- max(y1 - (!noaxissize) * axissize, y0)
             }
         } else {
             y0 <- y0 + adjustment
@@ -492,8 +537,9 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
             x1 <- max(xusr)
         } else {
             seqstart <- yusr + usrlong - yjust * usrlong - usrlong
-            x0 <- xusr - xjust * usrshort
-            x1 <- x0 + usrshort
+            tmp <- f_usrshort()
+            x0 <- xusr - xjust * tmp
+            x1 <- x0 + tmp
         }
         xmid <- (x0 + x1) / 2
         usrmid <- (usr[1] + usr[2]) / 2
@@ -501,16 +547,19 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
         if ((axisloc2 == "out" && xmid >= usrmid) ||
             (axisloc2 == "in" && xmid < usrmid)) {
             axisside <- 4
-            adjustment <- -xjust * axissize
+            if (!identical(labels2, FALSE) && las %in% c(0, 3)) {
+                axissize <- axissize + axisopt
+            }
+            adjustment <- (!noaxissize) * (-xjust * axissize)
         } else {
             axisside <- 2
-            adjustment <- axissize - xjust * axissize
+            adjustment <- (!noaxissize) * (axissize - xjust * axissize)
         }
         if (!autoxy && nx == 2) {
             if (axisside == 4) {
-                x1 <- max(x1 - axissize, x0)
+                x1 <- max(x1 - (!noaxissize) * axissize, x0)
             } else {
-                x0 <- min(x0 + axissize, x1)
+                x0 <- min(x0 + (!noaxissize) * axissize, x1)
             }
         } else {
             x0 <- x0 + adjustment
@@ -539,12 +588,12 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
     if (horiz2) {
         if (axisside == 1) {
             axispos <- y0
-            ybottom <- y0 - trueaxissize
+            ybottom <- y0 - axissize
             ytop <- y1
         } else {
             axispos <- y1
             ybottom <- y0
-            ytop <- y1 + trueaxissize
+            ytop <- y1 + axissize
         }
         if (xlog) {
             seqpoints <- 10^seqpoints
@@ -566,12 +615,12 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
     } else {
         if (axisside == 2) {
             axispos <- x0
-            xleft <- x0 - trueaxissize
+            xleft <- x0 - axissize
             xright <- x1
         } else {
             axispos <- x1
             xleft <- x0
-            xright <- x1 + trueaxissize
+            xright <- x1 + axissize
         }
         if (ylog) {
             seqpoints <- 10^seqpoints
