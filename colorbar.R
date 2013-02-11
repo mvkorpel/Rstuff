@@ -83,24 +83,26 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
         stop("at least one color needed")
     }
     if (standalone) {
-        par(mai = rep(0, 4))
-        margin2 <- margin
+        newmai <- margin
         ds <- dev.size(units = "in")
+        mfrow <- par("mfrow")
+        if (all(mfrow == 1)) {
+            par(omi = rep(0, 4))
+        }
+        omi <- par("omi")
+        pin <- c((ds[1] - omi[2] - omi[4]) / mfrow[2],
+                 (ds[2] - omi[1] - omi[3]) / mfrow[1])
         for (i in c(1, 3)) {
-            if (margin2[i] < 0) {
-                margin2[i] <- -margin2[i]
-            } else {
-                margin2[i] <- margin2[i] / ds[2]
+            if (newmai[i] < 0) {
+                newmai[i] <- -newmai[i] * pin[2]
             }
         }
         for (i in c(2, 4)) {
-            if (margin2[i] < 0) {
-                margin2[i] <- -margin2[i]
-            } else {
-                margin2[i] <- margin2[i] / ds[1]
+            if (newmai[i] < 0) {
+                newmai[i] <- -newmai[i] * pin[1]
             }
         }
-        par(omd = c(margin2[2], 1 - margin2[4], margin2[1], 1 - margin2[3]))
+        par(mai = newmai)
         plot(1:2, ann = FALSE, xaxt = "n", yaxt = "n", type = "n", bty = "n")
     }
     if (autoxy) {
@@ -144,7 +146,7 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
             usrlong <- usrheight
             usrshort <- usrwidth
         }
-        xauto <- "center"
+        xauto <- "center" # margin2 is not defined, will not be used
     } else {
         if (longside < 0) {
             longside2 <- -longside
@@ -368,19 +370,21 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
     ## (Log) user coordinates for colorbar
     axisside <- NULL
     if (autoxy) {
-        margin2 <- margin
-        for (i in c(1, 3)) {
-            if (margin2[i] < 0) {
-                margin2[i] <- -margin2[i]
-            } else {
-                margin2[i] <- margin2[i] / pin[2]
+        if (!standalone) {
+            margin2 <- margin
+            for (i in c(1, 3)) {
+                if (margin2[i] < 0) {
+                    margin2[i] <- -margin2[i]
+                } else {
+                    margin2[i] <- margin2[i] / pin[2]
+                }
             }
-        }
-        for (i in c(2, 4)) {
-            if (margin2[i] < 0) {
-                margin2[i] <- -margin2[i]
-            } else {
-                margin2[i] <- margin2[i] / pin[1]
+            for (i in c(2, 4)) {
+                if (margin2[i] < 0) {
+                    margin2[i] <- -margin2[i]
+                } else {
+                    margin2[i] <- margin2[i] / pin[1]
+                }
             }
         }
         if (horiz2) {
