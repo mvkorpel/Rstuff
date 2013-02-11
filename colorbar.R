@@ -102,8 +102,10 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
                 newmai[i] <- -newmai[i] * pin[1]
             }
         }
+        oldmai <- par("mai")
         par(mai = newmai)
         plot(1:2, ann = FALSE, xaxt = "n", yaxt = "n", type = "n", bty = "n")
+        on.exit(par(mai = oldmai))
     }
     if (autoxy) {
         thepar <- par()
