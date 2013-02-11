@@ -105,8 +105,8 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
     }
     if (autoxy) {
         thepar <- par()
-        xlog <- FALSE
-        ylog <- FALSE
+        xlog <- thepar$xlog
+        ylog <- thepar$ylog
     }
     usr <- thepar$usr
     usrlin <- usr
@@ -355,6 +355,7 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
         }
     } else {
         tickat2 <- NULL
+        labels2 <- FALSE
         axissize <- 0
     }
     ## Ensure that axis and labels fit in the standalone picture
