@@ -155,7 +155,7 @@ colorbar(x, y = NULL, col = palette(), labels = TRUE,
   standalone colorbar occupies the whole device except
   \code{\var{margin}}.
 
-  Additional arguments can be given to \code{\link{axis}}. For example,
+  Additional arguments can be given to \code{\link{axis}}.  For example,
   \code{\var{las}} controls the orientation of axis labels and
   \code{\var{cex.axis}} adjusts text size.
 }
@@ -175,7 +175,8 @@ colorbar(x, y = NULL, col = palette(), labels = TRUE,
   \code{\link{par}} for how to specify colors
 }
 
-\examples{pal <- cm.colors(128)
+\examples{### Example 1
+pal <- cm.colors(128)
 agricol <- round(swiss$Agriculture / 100 * 127 + 1)
 plot(swiss$Education, swiss$Fertility, bg = pal[agricol], pch=21, cex=2,
      xlab = "Education", ylab = "Fertility")
@@ -183,5 +184,101 @@ coord <- colorbar("right", col = pal, minlabel = 0, maxlabel = 100,
                   nticks=6, las=1, axisloc="out", cex.axis=0.75, xjust=0)
 text(coord[1] - 2, mean(coord[c(2, 4)]), "Agriculture",
      srt = 90, adj=c(0.5,0))
+
+### Example 2 (3 rows, 2 columns)
+par(mfrow = c(3, 2))
+pal8 <- rainbow(8)
+pal64 <- terrain.colors(64)
+
+## [1, 1]
+## Sine. Draw colorbars under peaks, over valleys.
+x <- seq(0, 6*pi, length.out=101)
+plot(x, sin(x), type="l", xaxt="n", main="Sine")
+axis(1, pi/2 * c(1, 5, 9),
+     labels=c(expression(pi/2), expression(5*pi/2), expression(9*pi/2)))
+colorbar(3*pi/2, 1, xjust = 0.5, yjust = 1, col = sample(colors(), 8),
+         horiz = FALSE, minlabel=1, maxlabel=8, axisloc="out",
+         mgp = c(3, 0.5, 0), shortside = -0.025)
+colorbar(pi/2, -1, xjust = 0.5, yjust = 0, col = sample(colors(), 8),
+         horiz = FALSE, minlabel=1, maxlabel=8, nticks=4, axisloc="in",
+         mgp = c(3, 0.5, 0), shortside = -0.025)
+colorbar(9*pi/2, -1, xjust = 0.5, yjust = 0, col = sample(colors(), 8),
+         horiz = FALSE, minlabel=0, maxlabel=1000, nticks=4, axisloc="out",
+         mgp = c(3, 0.5, 0), shortside = -0.025)
+colorbar(11*pi/2, 1, xjust = 0.5, yjust = 1, col = sample(colors(), 8),
+         horiz = FALSE, minlabel=1, maxlabel=8, axisloc="in",
+         mgp = c(3, 0.5, 0), shortside = -0.025)
+
+## [1, 2]
+x <- 1:10
+plot(x, 10^x, log="y", main="Log y axis")
+colorbar("topleft", horiz=TRUE, col=pal64)
+colorbar("bottomright", horiz=TRUE, col=pal64)
+colorbar("topright", horiz=FALSE, col=pal64)
+colorbar("bottomleft", horiz=FALSE, col=pal64)
+
+## [2, 1]
+plot(x, log10(x), log="x", main="Log x axis")
+pin <- par("pin")
+shortside <- 0.05 * max(pin)
+longside <- 0.6 * min(pin)
+oldpar <- list(mgp = par("mgp"), las = par("las"))
+par(mgp = c(3, 0.5, 0), las = 1)
+colorbar("topleft", horiz=FALSE, col=pal64, reverse=TRUE,
+         shortside = shortside, longside = longside,
+         minlabel = 0, maxlabel = 1, nticks = 5, axisloc = "out")
+colorbar("bottomright", horiz=FALSE, col=pal64, reverse=TRUE,
+         shortside = shortside, longside = longside,
+         minlabel = 0, maxlabel = 1, nticks = 5, axisloc = "out")
+colorbar("top", horiz=TRUE, col=pal64, reverse=TRUE,
+         shortside = shortside, longside = longside,
+         minlabel = 0, maxlabel = 1, nticks = 10, axisloc = "out")
+colorbar("bottom", horiz=TRUE, col=pal64, reverse=TRUE,
+         shortside = shortside, longside = longside,
+         minlabel = 0, maxlabel = 1, nticks = 10, axisloc = "out")
+par(oldpar)
+
+## [2, 2]
+## 3 cycloid cycles, one vertical colorbar inside each cycle.
+## Left colorbar is top aligned with y=2,
+## middle bar is middle aligned with y=1,
+## right bar is bottom aligned with y=0.
+t <- seq(0, 6*pi, length.out=101)
+x <- t - sin(t)
+y <- 1 - cos(t)
+plot(x, y, type="l", main="Cycloid with radius 1")
+colorbar(x = pi, y = 2, yjust = 1, col = pal8, horiz = FALSE)
+## test that defaults don't change
+colorbar(x = 3*pi, y = 1, col = pal8)
+colorbar(x = 5*pi, y = 0, yjust = 0, col = pal8, horiz = FALSE)
+
+## [3, 1]
+## Stair steps. Two horizontal colorbars:
+## * Each lean on one of the steps
+## * Top colorbar is bottom aligned, extends to left border of plot
+## * Bottom bar is top aligned, extends to right border
+## * Height of each colorbar is height of the corresponding step
+x <- 1:10
+y <- sort(x + rnorm(10, sd=0.3))
+plot(x, y, type="s", main="Stair steps")
+diffy <- diff(y)
+leftx <- which.max(diffy[5:9]) + 5
+rightx <- which.max(diffy[1:4]) + 1
+usr <- par("usr")
+leftwidth <- -(leftx - usr[1]) / (usr[2] - usr[1])
+rightwidth <- -(usr[2] - rightx) / (usr[2] - usr[1])
+leftheight <- -diffy[leftx - 1] / (usr[4] - usr[3])
+rightheight <- -diffy[rightx - 1] / (usr[4] - usr[3])
+lefty <- y[leftx - 1]
+righty <- y[rightx - 1]
+colorbar(leftx, lefty, longside = leftwidth, shortside = leftheight,
+         xjust = 1, yjust = 0, horiz = TRUE, col = pal8)
+colorbar(rightx, righty, longside = rightwidth, shortside = rightheight,
+         xjust = 0, yjust = 0, horiz = TRUE, col = pal8)
+
+## [3, 2]
+## "standalone" horizontal colorbar
+colorbar("standalone", horiz = TRUE, axisloc = "out", col = pal8,
+         labels = c("Hello", "Hello\nthere"), tickat=c(3, 6))
 }
 \keyword{ color }
