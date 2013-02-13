@@ -36,11 +36,15 @@ _A_r_g_u_m_e_n_t_s:
 
    horiz: A ‘logical’ flag or ‘"auto"’ indicating if the colorbar will
           be drawn horizontally (‘TRUE’) or vertically (‘FALSE’).  If
-          ‘"auto"’, the orientation will be determined automatically in
-          some situations, i.e. when ‘x’ is ‘"top"’ or ‘"bottom"’
-          (horizontal orientation is assumed) or when two (‘x’, ‘y’)
-          points are given (the direction with the longer distance
-          between the points determines the orientation).
+          ‘"auto"’, the orientation will be determined automatically:
+          When ‘x’ is ‘"top"’ or ‘"bottom"’ (‘"left"’ or ‘"right"’),
+          horizontal (vertical) orientation is assumed.  When two (‘x’,
+          ‘y’) points are given, the colorbar runs along the axis with
+          the longer distance (in inches) between the points.
+          Otherwise, the ratio of the width and height (in inches) of
+          the plotting region determines the orientation: the colorbar
+          runs along the longer axis (vertically if the axes have equal
+          length).
 
 minlabel: A ‘numeric’ value giving the label corresponding to the first
           color.  If ‘NA’, manual ‘labels’ are used if available.
@@ -152,17 +156,22 @@ _S_e_e _A_l_s_o:
 _E_x_a_m_p_l_e_s:
 
      ### Example 1
+     dev.new()
      pal <- cm.colors(128)
      agricol <- round(swiss$Agriculture / 100 * 127 + 1)
      plot(swiss$Education, swiss$Fertility, bg = pal[agricol], pch=21, cex=2,
           xlab = "Education", ylab = "Fertility")
      coord <- colorbar("right", col = pal, minlabel = 0, maxlabel = 100,
-                       nticks=6, las=1, axisloc="out", cex.axis=0.75, xjust=0)
+                       nticks=6, las=1, axisloc="out", cex.axis=0.75)
      text(coord[1] - 2, mean(coord[c(2, 4)]), "Agriculture",
           srt = 90, adj=c(0.5,0))
+     if (!dev.interactive()) {
+         dev.off()
+     }
      
-     ### Example 2 (3 rows, 2 columns)
-     par(mfrow = c(3, 2))
+     ### Example 2 (4 rows, 2 columns)
+     dev.new(width = 7, height = 10, units = "in")
+     par(mfrow = c(4, 2))
      pal8 <- rainbow(8)
      pal64 <- terrain.colors(64)
      
@@ -170,8 +179,8 @@ _E_x_a_m_p_l_e_s:
      ## Sine. Draw colorbars under peaks, over valleys.
      x <- seq(0, 6*pi, length.out=101)
      plot(x, sin(x), type="l", xaxt="n", main="Sine")
-     axis(1, pi/2 * c(1, 5, 9),
-          labels=c(expression(pi/2), expression(5*pi/2), expression(9*pi/2)))
+     axis(1, at = pi/2 * c(1, 5, 9),
+          labels = c(expression(pi/2), expression(5*pi/2), expression(9*pi/2)))
      colorbar(3*pi/2, 1, xjust = 0.5, yjust = 1, col = sample(colors(), 8),
               horiz = FALSE, minlabel=1, maxlabel=8, axisloc="out",
               mgp = c(3, 0.5, 0), shortside = -0.025)
@@ -215,18 +224,28 @@ _E_x_a_m_p_l_e_s:
      par(oldpar)
      
      ## [2, 2]
-     ## 3 cycloid cycles, one vertical colorbar inside each cycle.
-     ## Left colorbar is top aligned with y=2,
-     ## middle bar is middle aligned with y=1,
-     ## right bar is bottom aligned with y=0.
+     ## 3 cycloid cycles; vertical, horizontal, vertical colorbar.
+     ## Coordinates are given as a pair of (x, y) points.
+     ## The default 'reverse="auto"' means that the order of points in 'x' or
+     ## 'y' determines the drawing order of the colors. The default
+     ## 'horiz="auto"' compares the width and height of the colorbar and
+     ## automatically selects horizontal or vertical orientation.
      t <- seq(0, 6*pi, length.out=101)
      x <- t - sin(t)
      y <- 1 - cos(t)
-     plot(x, y, type="l", main="Cycloid with radius 1")
-     colorbar(x = pi, y = 2, yjust = 1, col = pal8, horiz = FALSE)
-     ## test that defaults don't change
-     colorbar(x = 3*pi, y = 1, col = pal8)
-     colorbar(x = 5*pi, y = 0, yjust = 0, col = pal8, horiz = FALSE)
+     plot(x, y, type="l", main="Cycloid with radius 1", asp = 1, xaxt = "n")
+     axis(1, at = pi * c(0, 2, 4, 6),
+          labels = c("0", expression(2*pi), expression(4*pi), expression(6*pi)))
+     barshort <- 0.8
+     barlong <- 5
+     colorbar(x = c(pi-barshort/2, pi+barshort/2), y = c(1.8-barlong, 1.8),
+              col = pal8)
+     colorbar(x = c(3*pi-barlong/2, 3*pi+barlong/2),
+              y = c(2.2, 2.2+barshort), col = pal8)
+     ## Reverse order of 'y' points
+     colorbar(x = c(5*pi-barshort/2, 5*pi+barshort/2), y = c(1.8, 1.8-barlong),
+              col = pal8)
+     
      
      ## [3, 1]
      ## Stair steps. Two horizontal colorbars:
@@ -256,4 +275,23 @@ _E_x_a_m_p_l_e_s:
      ## "standalone" horizontal colorbar
      colorbar("standalone", horiz = TRUE, axisloc = "out", col = pal8,
               labels = c("Hello", "Hello\nthere"), tickat=c(3, 6))
+     
+     ## [4, 1]
+     ## cex.axis as an argument
+     plot(1:5)
+     colorbar("right", horiz=FALSE, col=pal64, minlabel = 0, maxlabel = 1,
+              nticks = 3, axisloc = "out", las = 1, cex.axis = 2)
+     
+     ## [4, 2]
+     ## cex.axis in par(), affecting all axes
+     oldpar <- list(cex.axis = par("cex.axis"))
+     par(cex.axis = 2)
+     plot(1:5)
+     colorbar("right", horiz=FALSE, col=pal64, minlabel = 0, maxlabel = 1,
+              nticks = 3, axisloc = "out", las = 1)
+     par(oldpar)
+     
+     if (!dev.interactive()) {
+         dev.off()
+     }
      

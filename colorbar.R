@@ -125,10 +125,15 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
     usrheight <- usr[4] - usr[3]
     usrheightlin <- usrlin[4] - usrlin[3]
 
-    if (autoxy && horiz == "auto") {
-        horiz2 <- xauto %in% c("top", "bottom")
-    } else if (horiz == "auto") {
-        horiz2 <- FALSE
+    pin <- thepar$pin
+    if (horiz == "auto") {
+        if (autoxy && xauto %in% c("top", "bottom")) {
+            horiz2 <- TRUE
+        } else if (autoxy && xauto %in% c("left", "right")) {
+            horiz2 <- FALSE
+        } else {
+            horiz2 <- pin[1] > pin[2]
+        }
     } else {
         horiz2 <- horiz
     }
@@ -137,7 +142,6 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
     } else {
         reverse2 <- reverse
     }
-    pin <- thepar$pin
     ## Negative numbers in longside, shortside are proportional,
     ## positive numbers are inches
     if (standalone) {
@@ -244,7 +248,7 @@ colorbar <- function(x, y = NULL, col = palette(), labels = TRUE,
         }
         cex.axis <- axisArg[["cex.axis"]]
         if (is.null(cex.axis)) {
-            cex.axis <- 1
+            cex.axis <- thepar$cex.axis
         }
         las <- axisArg[["las"]]
         if (is.null(las)) {
